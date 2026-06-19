@@ -1,22 +1,23 @@
 package com.example.tutorialrun4.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tutorialrun4.repository.PlantRepository
 import com.example.tutorialrun4.room.Plant
 import com.example.tutorialrun4.room.PlantDao
+import com.example.tutorialrun4.room.Reminder
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import java.io.File
 
 class PlantListScreenViewModel(
-    val dao: PlantDao
+    val plantRepository: PlantRepository
 ): ViewModel() {
-    val plantList: StateFlow<List<Plant>> = dao.getAllPlants()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000), // Keeps upstream flow alive for 5s after UI disconnects
-            initialValue = emptyList() // The initial state before Room loads the data
-        )
+    val plantList = plantRepository.plantDataList.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 }

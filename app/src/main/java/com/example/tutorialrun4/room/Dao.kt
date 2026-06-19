@@ -15,6 +15,9 @@ interface PlantDao {
     @Query("SELECT * FROM plants WHERE id = :id")
     suspend fun getPlantById(id: Long): Plant?
 
+    @Delete
+    suspend fun deletePlant(plant: Plant)
+
     // Reminder operations
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReminder(reminder: Reminder): Long
@@ -25,8 +28,14 @@ interface PlantDao {
     @Query("SELECT * FROM reminders WHERE plantId = :plantId")
     fun getRemindersForPlant(plantId: Long): Flow<List<Reminder>>
 
+    @Query("SELECT * FROM reminders WHERE plantId = :plantId")
+    suspend fun getRemindersForPlantList(plantId: Long): List<Reminder>
+
     @Query("SELECT * FROM reminders")
     fun getAllReminders(): Flow<List<Reminder>>
+    
+    @Query("SELECT * FROM reminders")
+    suspend fun getAllRemindersList(): List<Reminder>
 
     @Query("DELETE FROM reminders WHERE id = :id")
     suspend fun deleteReminderById(id: Int)

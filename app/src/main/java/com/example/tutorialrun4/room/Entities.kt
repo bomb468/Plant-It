@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 data class Plant(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
-    val imageName: String?
+    val imageName: String? = null
 )
 
 @Entity(
@@ -29,5 +29,5 @@ data class Reminder(
     val plantId: Long,
     val hour: Int, // 0-23
     val minute: Int, // 0-59
-    val dayOfWeek: Int // e.g., 1 for Monday, 7 for Sunday (standard Calendar/java.time values)
+    val dayOfWeek: Int // e.g., 0 for Monday, 6 for Sunday (standard Calendar/java.time values)
 )

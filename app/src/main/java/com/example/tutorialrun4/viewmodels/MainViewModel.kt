@@ -10,5 +10,5 @@ class MainViewModel() : ViewModel() {
 
 sealed class Screens() {
     class PlantListScreen() : Screens()
-    class PlantScreen() : Screens()
+    class PlantScreen(val id : Long) : Screens()
 }

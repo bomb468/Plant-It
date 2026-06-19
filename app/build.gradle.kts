@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
@@ -67,4 +68,9 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
+    implementation(libs.github.bumptech.glide)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.work.runtime.ktx)
 }

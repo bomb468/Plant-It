@@ -89,10 +89,15 @@ fun MainScreen(modifier: Modifier = Modifier) {
         entryProvider = { key ->
             when (key) {
                 is Screens.PlantListScreen -> NavEntry(key) {
-                    PlantListScreen()
+                    PlantListScreen(
+                        onPlantClick = { id ->
+                            viewModel.backStack.add(Screens.PlantScreen(id))
+                        },
+                        modifier=modifier
+                    )
                 }
                 is Screens.PlantScreen -> NavEntry(key) {
-                    PlantScreen()
+                    Screens.PlantScreen(key.id)
                 }
             }
         }

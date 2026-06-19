@@ -11,8 +11,5 @@ fun provideViewModel(): ViewModelProvider.Factory {
         initializer {
             MainViewModel()
         }
-        initializer {
-            PlantListScreenViewModel()
-        }
     }
 }
