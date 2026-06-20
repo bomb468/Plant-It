@@ -40,7 +40,7 @@ class PlantRepository(
             PlantData(
                 id = plant.id,
                 plantName = plant.name,
-                imageFile = File(plant.imageName ?: ""),
+                imageFile = plant.imageName?.let { if (it.isNotEmpty()) File(it) else null },
                 reminderList = plantReminders
             )
         }
@@ -51,7 +51,19 @@ class PlantRepository(
     }
 
     suspend fun updatePlant(plant: Plant) {
-        plantDao.insertPlant(plant)
+        plantDao.updatePlant(plant)
+        // Reschedule reminders for this plant to update the notification content (like plant name)
+        val reminders = plantDao.getRemindersForPlantList(plant.id)
+        reminders.forEach { reminder ->
+            ReminderScheduler.scheduleReminder(
+                context = context,
+                reminderId = reminder.id,
+                plantName = plant.name,
+                dayOfWeek = reminder.dayOfWeek,
+                hour = reminder.hour,
+                minute = reminder.minute
+            )
+        }
     }
 
     suspend fun deletePlant(plant: Plant) {

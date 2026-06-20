@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -41,6 +42,7 @@ import com.example.tutorialrun4.viewmodels.PlantScreenViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +61,13 @@ fun PlantScreen(
     var showAddReminderDialog by remember { mutableStateOf(false) }
     var showImagePicker by remember { mutableStateOf(false) }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Save on back press (system back button)
+    BackHandler {
+        plantScreenViewModel.savePlant {
+            onBackClick()
+        }
+    }
 
     // Launcher for Notification Permission (Android 13+)
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -408,7 +417,7 @@ fun ReminderItem(
 ) {
     val amPm = if (hour < 12) "AM" else "PM"
     val displayHour = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
-    val timeFormatted = String.format(Locale.getDefault(), "%d:%02d %s", displayHour, minute, amPm)
+    val timeFormatted = String.format(LocalLocale.current.platformLocale, "%d:%02d %s", displayHour, minute, amPm)
 
     Card(
         modifier = Modifier.fillMaxWidth(),

@@ -19,6 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.TutorialRun4">
         <activity
             android:name=".MainActivity"
@@ -34,12 +35,14 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:authorities="com.example.tutorialrun4.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
+
             <meta-data
-                android:name="android.support.FILE_PATHS"
+                android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
+
         </provider>
 
         <receiver

@@ -9,6 +9,9 @@ interface PlantDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlant(plant: Plant): Long
 
+    @Update
+    suspend fun updatePlant(plant: Plant)
+
     @Query("SELECT * FROM plants")
     fun getAllPlants(): Flow<List<Plant>>
 

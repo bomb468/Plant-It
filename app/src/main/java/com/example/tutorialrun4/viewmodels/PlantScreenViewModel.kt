@@ -1,17 +1,20 @@
 package com.example.tutorialrun4.viewmodels
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tutorialrun4.repository.PlantData
 import com.example.tutorialrun4.repository.PlantRepository
+import com.example.tutorialrun4.repository.ReminderData
 import com.example.tutorialrun4.room.Plant
 import com.example.tutorialrun4.room.Reminder
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
@@ -28,23 +31,39 @@ class PlantScreenViewModel(
     var editedImageFile by mutableStateOf<File?>(null)
         private set
 
+    // For new plants, we store reminders locally before saving
+    val tempReminders = mutableStateListOf<ReminderData>()
+    private var tempIdCounter = -1
+
+    init {
+        if (id != 0L) {
+            viewModelScope.launch {
+                val plant = plantRepository.getPlantById(id)
+                plant?.let {
+                    editedName = it.name
+                    editedImageFile = it.imageName?.let { path -> if (path.isNotEmpty()) File(path) else null }
+                }
+            }
+        }
+    }
+
     // Expose a clean StateFlow of PlantData directly to the UI
-    val plantState: StateFlow<PlantData> = plantRepository.plantDataList
-        .map { allPlants ->
-            val plant = allPlants.find { it.id == id } ?: createDefaultPlant()
-            if (editedName.isEmpty() && plant.id != 0L) {
-                editedName = plant.plantName
-            }
-            if (editedImageFile == null && plant.id != 0L) {
-                editedImageFile = plant.imageFile
-            }
+    val plantState: StateFlow<PlantData> = combine(
+        plantRepository.plantDataList,
+        snapshotFlow { tempReminders.toList() }
+    ) { allPlants, localReminders ->
+        val plant = allPlants.find { it.id == id } ?: createDefaultPlant()
+        
+        if (id == 0L) {
+            plant.copy(reminderList = localReminders)
+        } else {
             plant
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = createDefaultPlant()
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = createDefaultPlant()
+    )
 
     fun onNameChange(newName: String) {
         editedName = newName
@@ -67,7 +86,21 @@ class PlantScreenViewModel(
         viewModelScope.launch {
             val imageName = editedImageFile?.absolutePath
             if (id == 0L) {
-                plantRepository.addPlant(Plant(name = editedName, imageName = imageName))
+                // Only save if name is not empty or if it's not just a default empty state
+                if (editedName.isNotBlank() || editedImageFile != null || tempReminders.isNotEmpty()) {
+                    val newId = plantRepository.addPlant(Plant(name = editedName, imageName = imageName))
+                    // Save temp reminders for the new plant
+                    tempReminders.forEach { reminder ->
+                        plantRepository.addReminder(
+                            Reminder(
+                                plantId = newId,
+                                hour = reminder.hour,
+                                minute = reminder.minute,
+                                dayOfWeek = reminder.dayOfWeek
+                            )
+                        )
+                    }
+                }
             } else {
                 val existingPlant = plantRepository.getPlantById(id)
                 if (existingPlant != null) {
@@ -94,8 +127,10 @@ class PlantScreenViewModel(
     }
 
     fun addReminder(dayOfWeek: Int, hour: Int, minute: Int) {
-        viewModelScope.launch {
-            if (id != 0L) {
+        if (id == 0L) {
+            tempReminders.add(ReminderData(id = tempIdCounter--, hour = hour, minute = minute, dayOfWeek = dayOfWeek))
+        } else {
+            viewModelScope.launch {
                 plantRepository.addReminder(
                     Reminder(
                         plantId = id,
@@ -109,8 +144,12 @@ class PlantScreenViewModel(
     }
 
     fun deleteReminder(reminderId: Int) {
-        viewModelScope.launch {
-            plantRepository.deleteReminderById(reminderId)
+        if (id == 0L) {
+            tempReminders.removeAll { it.id == reminderId }
+        } else {
+            viewModelScope.launch {
+                plantRepository.deleteReminderById(reminderId)
+            }
         }
     }
 }

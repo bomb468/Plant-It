@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-files-path
-        name="my_images"
-        path="Pictures" />
+        name="external_files"
+        path="." />
     <files-path
-        name="plant_images"
-        path="plant_images/" />
+        name="internal_files"
+        path="." />
 </paths>
